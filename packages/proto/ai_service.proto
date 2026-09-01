@@ -1,0 +1,260 @@
+syntax = "proto3";
+
+package gemverify.ai;
+
+option go_package = "github.com/gemverify/gateway/proto/ai";
+
+// ============================================
+// AI Service — gRPC Service Definition
+// This is the contract between Go Gateway and Python AI Service
+// ============================================
+
+service AIService {
+  // Run the full compliance verification pipeline for a bid
+  rpc RunCompliancePipeline(PipelineRequest) returns (PipelineResponse);
+
+  // Stream real-time pipeline progress updates
+  rpc StreamPipelineProgress(PipelineRequest) returns (stream PipelineProgressEvent);
+
+  // Run OCR extraction on a single document
+  rpc ExtractDocument(DocumentExtractionRequest) returns (DocumentExtractionResponse);
+
+  // Verify a document against mock government APIs
+  rpc VerifyDocument(VerificationRequest) returns (VerificationResponse);
+
+  // Get AI recommendation for a bid
+  rpc GetRecommendation(RecommendationRequest) returns (RecommendationResponse);
+
+  // Compliance Copilot — ask a contextual question about a bid
+  rpc AskCopilot(CopilotRequest) returns (CopilotResponse);
+
+  // Parse tender PDF to extract structured requirements
+  rpc ParseTenderDocument(TenderParseRequest) returns (TenderParseResponse);
+}
+
+// ============================================
+// Pipeline Messages
+// ============================================
+
+message PipelineRequest {
+  string bid_id = 1;
+  string tender_id = 2;
+  repeated DocumentInfo documents = 3;
+  TenderRequirements tender_requirements = 4;
+  bool partial_rerun = 5;               // true if re-triggered after clarification
+  repeated string rerun_doc_types = 6;  // which doc types to re-verify
+}
+
+message PipelineResponse {
+  string bid_id = 1;
+  ComplianceScore scores = 2;
+  repeated RequirementMatch requirement_matches = 3;
+  repeated ComplianceFlag flags = 4;
+  repeated ComplianceIssue issues = 5;
+  map<string, Evidence> evidence = 6;
+  string ai_recommendation = 7;
+  string reasoning_trace = 8;
+  ReasoningTraceStructured reasoning_structured = 9;
+  int64 pipeline_duration_ms = 10;
+  repeated PipelineStep steps_completed = 11;
+  string risk_level = 12;  // "low" | "medium" | "high" | "critical"
+}
+
+message PipelineProgressEvent {
+  string bid_id = 1;
+  string step_name = 2;       // "ocr", "verification", "matching", "scoring", "recommendation"
+  string status = 3;          // "started", "processing", "completed", "failed"
+  float progress_percent = 4; // 0.0 to 100.0
+  string message = 5;
+  string detail = 6;
+  int64 timestamp_ms = 7;
+}
+
+// ============================================
+// Document Messages
+// ============================================
+
+message DocumentInfo {
+  string document_id = 1;
+  string doc_type = 2;     // "udyam", "gst", "pan", etc.
+  string file_path = 3;    // MinIO object path
+  string original_filename = 4;
+  string mime_type = 5;
+}
+
+message DocumentExtractionRequest {
+  DocumentInfo document = 1;
+}
+
+message DocumentExtractionResponse {
+  string document_id = 1;
+  string raw_text = 2;
+  map<string, string> extracted_fields = 3;
+  float confidence = 4;
+  repeated string warnings = 5;
+}
+
+// ============================================
+// Verification Messages
+// ============================================
+
+message VerificationRequest {
+  string document_id = 1;
+  string doc_type = 2;
+  map<string, string> extracted_data = 3;
+  string registration_number = 4;
+}
+
+message VerificationResponse {
+  string document_id = 1;
+  string status = 2;  // "verified", "failed", "mismatch", "not_found", "expired"
+  map<string, string> registry_data = 3;
+  repeated string mismatches = 4;
+  repeated string errors = 5;
+  string verified_at = 6;
+}
+
+// ============================================
+// Scoring & Analysis Messages
+// ============================================
+
+message ComplianceScore {
+  float overall = 1;
+  float eligibility = 2;
+  float compliance = 3;
+  float risk = 4;
+  float completeness = 5;
+  float quality = 6;
+}
+
+message RequirementMatch {
+  string requirement_id = 1;
+  string requirement_text = 2;
+  string status = 3;          // "met", "unmet", "partial"
+  string evidence_summary = 4;
+  string source_document = 5;
+  float confidence = 6;
+}
+
+message ComplianceFlag {
+  string flag_type = 1;   // "critical", "warning", "info"
+  string message = 2;
+  string field = 3;
+  string recommendation = 4;
+}
+
+message ComplianceIssue {
+  string severity = 1;     // "high", "medium", "low"
+  string description = 2;
+  string recommendation = 3;
+  string related_doc = 4;
+}
+
+message Evidence {
+  string doc_type = 1;
+  string status = 2;
+  map<string, string> data = 3;
+  string source = 4;
+  float confidence = 5;
+}
+
+message ReasoningTraceStructured {
+  repeated ReasoningStep steps = 1;
+}
+
+message ReasoningStep {
+  string step_name = 1;
+  string input_summary = 2;
+  string output_summary = 3;
+  float confidence = 4;
+  int64 duration_ms = 5;
+}
+
+message PipelineStep {
+  string name = 1;
+  string status = 2;
+  int64 duration_ms = 3;
+}
+
+// ============================================
+// Tender Requirements
+// ============================================
+
+message TenderRequirements {
+  string tender_id = 1;
+  string department = 2;
+  repeated string required_documents = 3;
+  bool msme_required = 4;
+  bool make_in_india_required = 5;
+  bool startup_required = 6;
+  float min_turnover = 7;
+  float local_content_percentage = 8;
+  repeated EligibilityRequirement eligibility_checks = 9;
+}
+
+message EligibilityRequirement {
+  string id = 1;
+  string description = 2;
+  string category = 3;  // "statutory", "financial", "technical", "experience"
+  bool mandatory = 4;
+}
+
+// ============================================
+// Copilot Messages
+// ============================================
+
+message CopilotRequest {
+  string bid_id = 1;
+  string tender_id = 2;
+  string question = 3;
+  repeated string context_doc_ids = 4;
+  string department = 5;  // For policy RAG filtering
+}
+
+message CopilotResponse {
+  string answer = 1;
+  repeated Citation citations = 2;
+  float confidence = 3;
+}
+
+message Citation {
+  string source = 1;
+  string text = 2;
+  int32 page = 3;
+}
+
+// ============================================
+// Recommendation Messages
+// ============================================
+
+message RecommendationRequest {
+  string bid_id = 1;
+  ComplianceScore scores = 2;
+  repeated RequirementMatch matches = 3;
+  repeated ComplianceFlag flags = 4;
+  repeated ComplianceIssue issues = 5;
+  string department = 6;
+}
+
+message RecommendationResponse {
+  string recommendation = 1;
+  string reasoning_trace = 2;
+  ReasoningTraceStructured reasoning_structured = 3;
+  string risk_level = 4;
+}
+
+// ============================================
+// Tender Parsing
+// ============================================
+
+message TenderParseRequest {
+  string file_path = 1;       // MinIO path to tender PDF
+  string department = 2;
+}
+
+message TenderParseResponse {
+  repeated EligibilityRequirement requirements = 1;
+  repeated string required_documents = 2;
+  map<string, string> extracted_metadata = 3;
+  float confidence = 4;
+}

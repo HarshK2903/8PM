@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+.turbo/
+
+# Build outputs
+dist/
+build/
+*.exe
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+*.egg-info/
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Go
+vendor/
+
+# MinIO data
+minio-data/
+
+# Uploads
+uploads/
+
+# Proto generated
+*_pb2.py
+*_pb2_grpc.py
+*.pb.go

@@ -1,0 +1,21 @@
+{
+  "name": "gemverify",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/web-bidder",
+    "apps/web-officer",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:bidder": "turbo run dev --filter=web-bidder",
+    "dev:officer": "turbo run dev --filter=web-officer",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.0"
+  }
+}
