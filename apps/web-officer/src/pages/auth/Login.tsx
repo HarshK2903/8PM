@@ -2,7 +2,12 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
 import api from '@/lib/api'
-import { Shield, Eye, EyeOff, Loader2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
+import { Shield, Loader2, Eye, EyeOff } from 'lucide-react'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -20,62 +25,66 @@ export default function Login() {
     try {
       const { data } = await api.post('/auth/login', { email, password })
       setAuth(data.user, data.access_token)
-      navigate(data.user.role === 'bidder' ? '/bidder' : '/officer')
+      navigate('/officer')
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Login failed')
+      setError(err.response?.data?.error || 'Invalid credentials')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen gradient-bg flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8 animate-fade-in-up">
-          <div className="w-16 h-16 mx-auto rounded-2xl gradient-accent flex items-center justify-center mb-4 animate-pulse-glow">
-            <Shield size={32} className="text-white" />
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="ambient-glow" />
+      <div className="w-full max-w-sm relative z-10">
+        {/* Logo */}
+        <div className="text-center mb-8 animate-in">
+          <div className="w-10 h-10 mx-auto rounded-lg bg-[var(--gem-blue)] flex items-center justify-center mb-3">
+            <Shield size={20} className="text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-white">GemVerify</h1>
-          <p className="text-navy-400 mt-1">AI-Powered Bid Compliance Platform</p>
+          <p className="text-sm text-muted-foreground">Officer Portal</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="glass rounded-2xl p-8 space-y-5 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-          <h2 className="text-xl font-semibold text-white text-center">Sign In</h2>
-
-          {error && (
-            <div className="bg-danger-500/10 border border-danger-500/20 rounded-lg px-4 py-3 text-danger-400 text-sm">{error}</div>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium text-navy-300 mb-1.5">Email</label>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
-              className="w-full px-4 py-2.5 rounded-lg bg-navy-800/50 border border-navy-700/50 text-white placeholder-navy-500 focus:border-accent-500 focus:ring-1 focus:ring-accent-500 outline-none transition-all"
-              placeholder="officer@gem.gov.in" />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-navy-300 mb-1.5">Password</label>
-            <div className="relative">
-              <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} required
-                className="w-full px-4 py-2.5 rounded-lg bg-navy-800/50 border border-navy-700/50 text-white placeholder-navy-500 focus:border-accent-500 focus:ring-1 focus:ring-accent-500 outline-none transition-all pr-10"
-                placeholder="••••••••" />
-              <button type="button" onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-navy-500 hover:text-navy-300 cursor-pointer">
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
-          </div>
-
-          <button type="submit" disabled={loading}
-            className="w-full py-2.5 rounded-lg gradient-accent text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer">
-            {loading ? <><Loader2 size={18} className="animate-spin" /> Signing in...</> : 'Sign In'}
-          </button>
-
-          <p className="text-center text-sm text-navy-500">
-            Don't have an account?{' '}
-            <a href="/register" className="text-accent-400 hover:text-accent-300 transition-colors">Register</a>
-          </p>
-        </form>
+        <Card className="animate-in" style={{ animationDelay: '0.1s' }}>
+          <CardHeader className="text-center pb-2">
+            <CardTitle className="text-xl">Sign in</CardTitle>
+            <CardDescription>Enter your credentials to continue</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {error && (
+              <div className="mb-4 px-3 py-2.5 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+                {error}
+              </div>
+            )}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" placeholder="officer@gem.gov.in" value={email}
+                  onChange={e => setEmail(e.target.value)} required autoFocus />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <Input id="password" type={showPassword ? 'text' : 'password'} placeholder="••••••••"
+                    value={password} onChange={e => setPassword(e.target.value)} required className="pr-10" />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? <><Loader2 size={16} className="mr-2 animate-spin" /> Signing in...</> : 'Sign in'}
+              </Button>
+            </form>
+          </CardContent>
+          <Separator />
+          <CardFooter className="justify-center pt-4">
+            <p className="text-sm text-muted-foreground">
+              New officer? <a href="/register" className="text-[var(--gem-blue-light)] hover:underline font-medium">Create account</a>
+            </p>
+          </CardFooter>
+        </Card>
       </div>
     </div>
   )

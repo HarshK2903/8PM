@@ -2,6 +2,11 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
 import api from '@/lib/api'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
 import { Shield, Loader2 } from 'lucide-react'
 
 export default function Register() {
@@ -19,54 +24,33 @@ export default function Register() {
       const { data } = await api.post('/auth/register', form)
       setAuth(data.user, data.access_token)
       navigate('/bidder')
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Registration failed')
-    } finally {
-      setLoading(false)
-    }
+    } catch (err: any) { setError(err.response?.data?.error || 'Registration failed') }
+    finally { setLoading(false) }
   }
 
   return (
-    <div className="min-h-screen gradient-bg flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8 animate-fade-in-up">
-          <div className="w-16 h-16 mx-auto rounded-2xl gradient-accent flex items-center justify-center mb-4">
-            <Shield size={32} className="text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-white">Register as Vendor</h1>
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="ambient-glow" />
+      <div className="w-full max-w-sm relative z-10">
+        <div className="text-center mb-8 animate-in">
+          <div className="w-10 h-10 mx-auto rounded-lg bg-[var(--gem-blue)] flex items-center justify-center mb-3"><Shield size={20} className="text-white" /></div>
+          <p className="text-sm text-muted-foreground">Create vendor account</p>
         </div>
-        <form onSubmit={handleSubmit} className="glass rounded-2xl p-8 space-y-4 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-          {error && <div className="bg-danger-500/10 border border-danger-500/20 rounded-lg px-4 py-3 text-danger-400 text-sm">{error}</div>}
-          <div>
-            <label className="block text-sm font-medium text-navy-300 mb-1.5">Full Name</label>
-            <input type="text" value={form.full_name} onChange={e => setForm({...form, full_name: e.target.value})} required
-              className="w-full px-4 py-2.5 rounded-lg bg-navy-800/50 border border-navy-700/50 text-white placeholder-navy-500 focus:border-accent-500 outline-none transition-all"
-              placeholder="Amit Sharma" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-navy-300 mb-1.5">Email</label>
-            <input type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} required
-              className="w-full px-4 py-2.5 rounded-lg bg-navy-800/50 border border-navy-700/50 text-white placeholder-navy-500 focus:border-accent-500 outline-none transition-all"
-              placeholder="vendor@company.com" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-navy-300 mb-1.5">Password</label>
-            <input type="password" value={form.password} onChange={e => setForm({...form, password: e.target.value})} required
-              className="w-full px-4 py-2.5 rounded-lg bg-navy-800/50 border border-navy-700/50 text-white placeholder-navy-500 focus:border-accent-500 outline-none transition-all"
-              placeholder="••••••••" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-navy-300 mb-1.5">Organization</label>
-            <input type="text" value={form.organization} onChange={e => setForm({...form, organization: e.target.value})}
-              className="w-full px-4 py-2.5 rounded-lg bg-navy-800/50 border border-navy-700/50 text-white placeholder-navy-500 focus:border-accent-500 outline-none transition-all"
-              placeholder="TechCorp Solutions Pvt Ltd" />
-          </div>
-          <button type="submit" disabled={loading}
-            className="w-full py-2.5 rounded-lg gradient-accent text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer">
-            {loading ? <><Loader2 size={18} className="animate-spin" /> Creating...</> : 'Create Account'}
-          </button>
-          <p className="text-center text-sm text-navy-500">Already registered? <a href="/login" className="text-accent-400 hover:text-accent-300">Sign In</a></p>
-        </form>
+        <Card className="animate-in" style={{ animationDelay: '0.1s' }}>
+          <CardHeader className="text-center pb-2"><CardTitle className="text-xl">Register</CardTitle><CardDescription>Vendor / bidder account</CardDescription></CardHeader>
+          <CardContent>
+            {error && <div className="mb-4 px-3 py-2.5 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">{error}</div>}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2"><Label htmlFor="name">Full name</Label><Input id="name" placeholder="Amit Sharma" value={form.full_name} onChange={e => setForm({...form, full_name: e.target.value})} required autoFocus /></div>
+              <div className="space-y-2"><Label htmlFor="email">Email</Label><Input id="email" type="email" placeholder="vendor@company.com" value={form.email} onChange={e => setForm({...form, email: e.target.value})} required /></div>
+              <div className="space-y-2"><Label htmlFor="password">Password</Label><Input id="password" type="password" placeholder="••••••••" value={form.password} onChange={e => setForm({...form, password: e.target.value})} required /></div>
+              <div className="space-y-2"><Label htmlFor="org">Organization</Label><Input id="org" placeholder="TechCorp Solutions Pvt Ltd" value={form.organization} onChange={e => setForm({...form, organization: e.target.value})} /></div>
+              <Button type="submit" className="w-full" disabled={loading}>{loading ? <><Loader2 size={16} className="mr-2 animate-spin" /> Creating...</> : 'Create account'}</Button>
+            </form>
+          </CardContent>
+          <Separator />
+          <CardFooter className="justify-center pt-4"><p className="text-sm text-muted-foreground">Already registered? <a href="/login" className="text-[var(--gem-blue-light)] hover:underline font-medium">Sign in</a></p></CardFooter>
+        </Card>
       </div>
     </div>
   )
