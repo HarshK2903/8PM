@@ -4,14 +4,29 @@
 # Seeds demo data: users, tenders, bids, mock registry
 # ============================================
 
-set -e
-
 API="http://localhost:8000/api"
 GREEN='\033[0;32m'
 CYAN='\033[0;36m'
+RED='\033[0;31m'
 NC='\033[0m'
 
 echo -e "${CYAN}🌱 Seeding GemVerify database...${NC}\n"
+
+# Wait for gateway to be ready
+echo -e "${CYAN}Waiting for Gateway to be ready...${NC}"
+for i in $(seq 1 30); do
+  if curl -s -o /dev/null -w "%{http_code}" "$API/auth/me" 2>/dev/null | grep -q "401\|403"; then
+    echo -e "  ${GREEN}✓ Gateway is ready!${NC}"
+    break
+  fi
+  if [ $i -eq 30 ]; then
+    echo -e "  ${RED}✗ Gateway not responding after 30s. Make sure dev.sh is running first!${NC}"
+    exit 1
+  fi
+  sleep 1
+  echo -n "."
+done
+echo ""
 
 # --- Create Officer ---
 echo -e "${GREEN}Creating Officer account...${NC}"
