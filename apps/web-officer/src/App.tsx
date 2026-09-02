@@ -7,6 +7,9 @@ import OfficerLayout from '@/components/layout/OfficerLayout'
 import OfficerDashboard from '@/pages/officer/OfficerDashboard'
 import TenderManagement from '@/pages/officer/TenderManagement'
 import ComplianceReview from '@/pages/officer/ComplianceReview'
+import ComplianceDeepDive from '@/pages/officer/ComplianceDeepDive'
+import CopilotChat from '@/pages/officer/CopilotChat'
+import AnalyticsDashboard from '@/pages/officer/AnalyticsDashboard'
 import AuditTrail from '@/pages/officer/AuditTrail'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -35,6 +38,9 @@ export default function App() {
           <Route index element={<OfficerDashboard />} />
           <Route path="tenders" element={<TenderManagement />} />
           <Route path="compliance" element={<ComplianceReview />} />
+          <Route path="compliance/:bidId" element={<ComplianceDeepDive />} />
+          <Route path="copilot" element={<CopilotChat />} />
+          <Route path="analytics" element={<AnalyticsDashboard />} />
           <Route path="audit" element={<AuditTrail />} />
         </Route>
         <Route path="*" element={<Navigate to="/officer" replace />} />

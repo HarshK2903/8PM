@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import { useAuthStore } from '@/stores/authStore'
+import LandingPage from '@/pages/landing/LandingPage'
 import Login from '@/pages/auth/Login'
 import Register from '@/pages/auth/Register'
 import BidderLayout from '@/components/layout/BidderLayout'
@@ -27,13 +28,14 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<AuthRedirect><Login /></AuthRedirect>} />
         <Route path="/register" element={<AuthRedirect><Register /></AuthRedirect>} />
         <Route path="/bidder" element={<ProtectedRoute><BidderLayout /></ProtectedRoute>}>
           <Route index element={<BidderDashboard />} />
           <Route path="tenders" element={<TenderBrowse />} />
         </Route>
-        <Route path="*" element={<Navigate to="/bidder" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   )

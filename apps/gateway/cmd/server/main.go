@@ -18,6 +18,7 @@ import (
 	"github.com/gemverify/gateway/internal/cache"
 	"github.com/gemverify/gateway/internal/config"
 	"github.com/gemverify/gateway/internal/database"
+	"github.com/gemverify/gateway/internal/grpcclient"
 	"github.com/gemverify/gateway/internal/handlers"
 	"github.com/gemverify/gateway/internal/middleware"
 	"github.com/gemverify/gateway/internal/storage"
@@ -55,6 +56,13 @@ func main() {
 	// Connect to MinIO
 	if err := storage.Connect(cfg.MinIOEndpoint, cfg.MinIOAccessKey, cfg.MinIOSecretKey, cfg.MinIOBucket, cfg.MinIOUseSSL); err != nil {
 		log.Warn().Err(err).Msg("⚠️ MinIO connection failed — file uploads will not work")
+	}
+
+	// Connect to AI Service (gRPC)
+	if err := grpcclient.Connect(cfg.AIServiceAddr); err != nil {
+		log.Warn().Err(err).Msg("⚠️ AI service connection failed — pipeline will not run")
+	} else {
+		defer grpcclient.Close()
 	}
 
 	// Create Fiber app
